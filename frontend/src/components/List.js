@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getCards, createCard } from "../services/api";
 
 function List({ list }) {
@@ -6,18 +6,18 @@ function List({ list }) {
   const [showInput, setShowInput] = useState(false);
   const [title, setTitle] = useState("");
 
-  useEffect(() => {
-    fetchCards();
-  }, [list.id]);
-
-  const fetchCards = async () => {
+  const fetchCards = useCallback(async () => {
     try {
       const res = await getCards(list.id);
       setCards(res.data);
     } catch (err) {
       console.error("Error fetching cards:", err);
     }
-  };
+  }, [list.id]);
+
+  useEffect(() => {
+    fetchCards();
+  }, [fetchCards]);
 
   const addCard = async () => {
     if (!title.trim()) return;
@@ -38,63 +38,32 @@ function List({ list }) {
     }
   };
 
- 
-  const getListClass = () => {
-    const name = list.title.toLowerCase();
-    if (name.includes("today")) return "today";
-    if (name.includes("week")) return "this-week";
-    if (name.includes("later")) return "later";
-    return "";
-  };
-
   return (
-    <div className={`trello-list ${getListClass()}`}>
-      {/* -------- List Header -------- */}
+    <div className={`trello-list ${list.color}`}>
       <div className="list-header">
         <span className="list-title">{list.title}</span>
-
-        <div className="list-actions">
-          <span>⇄</span>
-          <span>⋯</span>
+        <div className="list-icons">
+          <span className="list-icon">⇄</span>
+          <span className="list-icon">⋯</span>
         </div>
       </div>
 
-      {/* -------- Cards -------- */}
       <div className="list-cards">
-  {cards.map((card, index) => (
-    <div
-      key={card.id}
-      className={`card-item ${index === 0 ? "first-card" : ""}`}
-    >
-      <div className="card-circle"></div>
-      <span className="card-text">{card.title}</span>
-      <span className="card-edit">✎</span>
-    </div>
-  ))}
-</div>
+        {cards.map((card) => (
+          <div key={card.id} className="card-item">
+            {card.title}
+          </div>
+        ))}
+      </div>
 
-
-      {/* -------- Add Card -------- */}
       {showInput ? (
         <div className="add-card-area">
           <textarea
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Enter a title for this card..."
-            autoFocus
           />
-          <div>
-            <button onClick={addCard}>Add card</button>
-            <button
-              style={{ marginLeft: "8px", background: "transparent", color: "#fff" }}
-              onClick={() => {
-                setShowInput(false);
-                setTitle("");
-              }}
-            >
-              Cancel
-            </button>
-          </div>
+          <button onClick={addCard}>Add card</button>
         </div>
       ) : (
         <div className="add-card-btn" onClick={() => setShowInput(true)}>

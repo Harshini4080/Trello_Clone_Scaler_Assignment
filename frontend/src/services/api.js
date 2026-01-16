@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://trello-clone-scaler-assignment.onrender.com/",
+  baseURL: "http://localhost:5000",
 });
 
 // Boards

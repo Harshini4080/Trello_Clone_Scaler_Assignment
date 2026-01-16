@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { getLists, createList } from "../services/api";
 import List from "./List";
 
@@ -7,20 +7,20 @@ function Board({ board }) {
   const [showInput, setShowInput] = useState(false);
   const [title, setTitle] = useState("");
 
-  useEffect(() => {
-    if (board?.id) {
-      fetchLists();
-    }
-  }, [board?.id]);
-
-  const fetchLists = async () => {
+  const fetchLists = useCallback(async () => {
     try {
       const res = await getLists(board.id);
       setLists(res.data);
     } catch (err) {
       console.error("Error fetching lists:", err);
     }
-  };
+  }, [board?.id]);
+
+  useEffect(() => {
+    if (board?.id) {
+      fetchLists();
+    }
+  }, [board?.id, fetchLists]);
 
   const addList = async () => {
     if (!title.trim()) return;
@@ -49,32 +49,19 @@ function Board({ board }) {
           <List key={list.id} list={list} />
         ))}
 
-        {/* Add List Column */}
         <div className="add-list-container">
           {showInput ? (
-            <div className="add-list-box">
+            <>
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter list title..."
                 className="add-list-input"
-                autoFocus
               />
-              <div>
-                <button className="add-list-btn" onClick={addList}>
-                  Add list
-                </button>
-                <button
-                  className="add-list-cancel"
-                  onClick={() => {
-                    setShowInput(false);
-                    setTitle("");
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
+              <button className="add-list-btn" onClick={addList}>
+                Add list
+              </button>
+            </>
           ) : (
             <button
               onClick={() => setShowInput(true)}
